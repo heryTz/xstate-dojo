@@ -24,13 +24,13 @@ The React component must not contain any `useState`, `if`, or business logic. It
 
 ## Acceptance criteria
 
-- [ ] Initial state is `off`.
-- [ ] `TOGGLE` from `off` → `on`, and from `on` → `off`.
-- [ ] `BREAK` from `off` or `on` → `broken`.
-- [ ] `TOGGLE` in `broken` does nothing.
-- [ ] `REPAIR` in `broken` → `off`. `REPAIR` anywhere else does nothing.
-- [ ] Buttons are enabled or disabled according to `state.can(...)`.
-- [ ] The component has no conditional logic beyond rendering.
+- [x] Initial state is `off`.
+- [x] `TOGGLE` from `off` → `on`, and from `on` → `off`.
+- [x] `BREAK` from `off` or `on` → `broken`.
+- [x] `TOGGLE` in `broken` does nothing.
+- [x] `REPAIR` in `broken` → `off`. `REPAIR` anywhere else does nothing.
+- [x] Buttons are enabled or disabled according to `state.can(...)`.
+- [x] The component has no conditional logic beyond rendering.
 
 ## Bonus
 
