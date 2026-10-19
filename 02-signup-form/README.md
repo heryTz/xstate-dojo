@@ -31,7 +31,7 @@ The React component must not contain any `useState`, validation logic, or `async
 
 ## Acceptance criteria
 
-- [ ] Initial state is `editing`, with empty fields and no errors.
+- [x] Initial state is `editing`, with empty fields and no errors.
 - [ ] `CHANGE` updates the matching field in `context`.
 - [ ] `SUBMIT` with invalid fields stays in `editing` and sets the errors.
 - [ ] `SUBMIT` with valid fields → `submitting`.
