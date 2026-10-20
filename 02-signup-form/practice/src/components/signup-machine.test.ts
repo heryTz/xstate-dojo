@@ -12,4 +12,33 @@ describe("signup machine", () => {
       password: { value: "", error: null },
     });
   });
+
+  it(`update email`, () => {
+    const actor = createActor(signupMachine);
+    actor.start();
+    actor.send({ type: "change.email", value: "test@yopmail.com" });
+    expect(actor.getSnapshot().context.email.value).toBe("test@yopmail.com");
+  });
+
+  it(`no error when update valid email`, () => {
+    const actor = createActor(signupMachine);
+    actor.start();
+    actor.send({ type: "change.email", value: "test@yopmail.com" });
+    expect(actor.getSnapshot().context.email.error).toBeNull();
+  });
+
+  it(`show error when update with invalid email`, () => {
+    const actor = createActor(signupMachine);
+    actor.start();
+    actor.send({ type: "change.email", value: "test@" });
+    expect(actor.getSnapshot().context.email.error).toBe("Invalid email");
+  });
+
+  it(`remove error after update with valid email`, () => {
+    const actor = createActor(signupMachine);
+    actor.start();
+    actor.send({ type: "change.email", value: "test@" });
+    actor.send({ type: "change.email", value: "test@yopmail.com" });
+    expect(actor.getSnapshot().context.email.error).toBeNull();
+  });
 });

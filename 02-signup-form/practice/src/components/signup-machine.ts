@@ -1,4 +1,5 @@
-import { setup } from "xstate";
+import { assign, setup } from "xstate";
+import { produce } from "immer";
 
 type Field<T> = {
   value: T;
@@ -17,9 +18,14 @@ function field<T>(defaultValue: T): Field<T> {
   };
 }
 
+type SignupEvent = { type: "change.email"; value: string };
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export const signupMachine = setup({
   types: {
     context: {} as SignupContext,
+    events: {} as SignupEvent,
   },
 }).createMachine({
   id: "signup",
@@ -29,6 +35,21 @@ export const signupMachine = setup({
     password: field(""),
   },
   states: {
-    editing: {},
+    editing: {
+      on: {
+        "change.email": {
+          actions: assign(({ context, event }) =>
+            produce(context, (draft) => {
+              draft.email.value = event.value;
+              if (EMAIL_REGEX.test(event.value)) {
+                draft.email.error = null;
+              } else {
+                draft.email.error = "Invalid email";
+              }
+            }),
+          ),
+        },
+      },
+    },
   },
 });
