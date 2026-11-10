@@ -1,6 +1,6 @@
 import { assign, fromPromise, setup } from "xstate";
 import { produce } from "immer";
-import { signupApi } from "./api";
+import { FakeApi, type Api } from "./api";
 
 type Field<T> = {
   value: T;
@@ -8,8 +8,13 @@ type Field<T> = {
 };
 
 type SignupContext = {
+  api: Api;
   email: Field<string>;
   password: Field<string>;
+};
+
+type SignupInput = {
+  api?: Api;
 };
 
 function field<T>(defaultValue: T): Field<T> {
@@ -26,14 +31,18 @@ type SignupEvent =
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const signupApiActor = fromPromise(async () => {
-  return signupApi({ email: "test", password: "123" });
+const signupApiActor = fromPromise<
+  unknown,
+  { api: Api; data: { email: string; password: string } }
+>(async ({ input }) => {
+  return input.api.signup(input.data);
 });
 
 export const signupMachine = setup({
   types: {
     context: {} as SignupContext,
     events: {} as SignupEvent,
+    input: {} as SignupInput,
   },
   guards: {
     isValid: ({ context }) => {
@@ -44,10 +53,11 @@ export const signupMachine = setup({
 }).createMachine({
   id: "signup",
   initial: "editing",
-  context: {
+  context: ({ input }) => ({
+    api: input.api ?? new FakeApi(),
     email: field(""),
     password: field(""),
-  },
+  }),
   states: {
     editing: {
       on: {
@@ -85,11 +95,15 @@ export const signupMachine = setup({
     submitting: {
       invoke: {
         src: "signupApiActor",
+        input: ({ context }) => ({
+          api: context.api,
+          data: {
+            email: context.email.value,
+            password: context.password.value,
+          },
+        }),
         onDone: {
           target: "success",
-          actions: ({ event }) => {
-            console.log("action=>", event.output);
-          },
         },
       },
     },
