@@ -16,7 +16,7 @@ describe("signup machine", () => {
     const actor = createSignupMachineActor();
     actor.start();
     expect(actor.getSnapshot().value).toBe("editing");
-    const { api, ...payload } = actor.getSnapshot().context;
+    const { api, error, ...payload } = actor.getSnapshot().context;
     expect(payload).toEqual({
       email: { value: "", error: null },
       password: { value: "", error: null },
@@ -107,5 +107,61 @@ describe("signup machine", () => {
       email: "test@yopmail.com",
       password: "12345678",
     });
+  });
+
+  it(`change state "error" after failed API call`, async () => {
+    const error = new Error("Unknow error");
+    const signupFn = jest.fn().mockRejectedValue(error);
+    const actor = createSignupMachineActor({ signupFn });
+    actor.start();
+    actor.send({ type: "change.email", value: "test@yopmail.com" });
+    actor.send({ type: "change.password", value: "12345678" });
+    actor.send({ type: "submit" });
+
+    await waitFor(actor, (state) => state.matches("error"));
+    expect(actor.getSnapshot().context.error).toBe(error.message);
+  });
+
+  it(`retry failed submit change state to "submitting"`, async () => {
+    const error = new Error("Unknow error");
+    const signupFn = jest.fn().mockRejectedValue(error);
+    const actor = createSignupMachineActor({ signupFn });
+    actor.start();
+    actor.send({ type: "change.email", value: "test@yopmail.com" });
+    actor.send({ type: "change.password", value: "12345678" });
+    actor.send({ type: "submit" });
+
+    await waitFor(actor, (state) => state.matches("error"));
+    actor.send({ type: "retry" });
+    expect(actor.getSnapshot().matches("submitting")).toBe(true);
+  });
+
+  it(`when update field on failed submit, change state to "editing"`, async () => {
+    const error = new Error("Unknow error");
+    const signupFn = jest.fn().mockRejectedValue(error);
+    const actor = createSignupMachineActor({ signupFn });
+    actor.start();
+    actor.send({ type: "change.email", value: "test@yopmail.com" });
+    actor.send({ type: "change.password", value: "12345678" });
+    actor.send({ type: "submit" });
+
+    await waitFor(actor, (state) => state.matches("error"));
+    actor.send({ type: "change.email", value: "test-updated@yopmail.com" });
+    actor.send({ type: "change.password", value: "123456789" });
+    expect(actor.getSnapshot().matches("editing")).toBe(true);
+  });
+
+  it(`when submitting, we cannot update any field`, async () => {
+    const signupFn = jest.fn();
+    const actor = createSignupMachineActor({ signupFn });
+    actor.start();
+    actor.send({ type: "change.email", value: "test@yopmail.com" });
+    actor.send({ type: "change.password", value: "12345678" });
+    actor.send({ type: "submit" });
+
+    actor.send({ type: "change.email", value: "test-updated@yopmail.com" });
+    actor.send({ type: "change.password", value: "123456789" });
+    expect(actor.getSnapshot().context.email.value).toBe("test@yopmail.com");
+    expect(actor.getSnapshot().context.password.value).toBe("12345678");
   });
 });

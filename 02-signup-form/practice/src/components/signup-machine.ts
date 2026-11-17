@@ -11,6 +11,7 @@ type SignupContext = {
   api: Api;
   email: Field<string>;
   password: Field<string>;
+  error: string | null;
 };
 
 type SignupInput = {
@@ -27,7 +28,8 @@ function field<T>(defaultValue: T): Field<T> {
 type SignupEvent =
   | { type: "change.email"; value: string }
   | { type: "change.password"; value: string }
-  | { type: "submit" };
+  | { type: "submit" }
+  | { type: "retry" };
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -57,35 +59,11 @@ export const signupMachine = setup({
     api: input.api ?? new FakeApi(),
     email: field(""),
     password: field(""),
+    error: null,
   }),
   states: {
     editing: {
       on: {
-        "change.email": {
-          actions: assign(({ context, event }) =>
-            produce(context, (draft) => {
-              draft.email.value = event.value;
-              if (EMAIL_REGEX.test(event.value)) {
-                draft.email.error = null;
-              } else {
-                draft.email.error = "Invalid email";
-              }
-            }),
-          ),
-        },
-        "change.password": {
-          actions: assign(({ context, event }) =>
-            produce(context, (draft) => {
-              draft.password.value = event.value;
-              if (event.value.length >= 8) {
-                draft.password.error = null;
-              } else {
-                draft.password.error =
-                  "Password should be more than 8 characters";
-              }
-            }),
-          ),
-        },
         submit: {
           guard: "isValid",
           target: "submitting",
@@ -93,6 +71,9 @@ export const signupMachine = setup({
       },
     },
     submitting: {
+      on: {
+        "change.*": {},
+      },
       invoke: {
         src: "signupApiActor",
         input: ({ context }) => ({
@@ -105,8 +86,51 @@ export const signupMachine = setup({
         onDone: {
           target: "success",
         },
+        onError: {
+          target: "error",
+          actions: assign(({ context, event }) =>
+            produce(context, (draft) => {
+              draft.error = (event.error as Error).message;
+            }),
+          ),
+        },
       },
     },
     success: {},
+    error: {
+      on: {
+        retry: {
+          target: "submitting",
+        },
+      },
+    },
+  },
+  on: {
+    "change.email": {
+      target: ".editing",
+      actions: assign(({ context, event }) =>
+        produce(context, (draft) => {
+          draft.email.value = event.value;
+          if (EMAIL_REGEX.test(event.value)) {
+            draft.email.error = null;
+          } else {
+            draft.email.error = "Invalid email";
+          }
+        }),
+      ),
+    },
+    "change.password": {
+      target: ".editing",
+      actions: assign(({ context, event }) =>
+        produce(context, (draft) => {
+          draft.password.value = event.value;
+          if (event.value.length >= 8) {
+            draft.password.error = null;
+          } else {
+            draft.password.error = "Password should be more than 8 characters";
+          }
+        }),
+      ),
+    },
   },
 });
