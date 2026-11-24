@@ -1,5 +1,5 @@
-import Typography from "@mui/material/Typography";
+import { SignupForm } from "./signup-form";
 
 export function Home() {
-  return <Typography>Hello world!</Typography>;
+  return <SignupForm />;
 }

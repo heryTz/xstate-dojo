@@ -40,7 +40,7 @@ The React component must not contain any `useState`, validation logic, or `async
 - [x] `RETRY` in `error` → `submitting`.
 - [x] `CHANGE` in `error` → `editing`.
 - [x] Events sent while `submitting` (`CHANGE`, `SUBMIT`) do nothing.
-- [ ] The component has no conditional logic beyond rendering.
+- [x] The component has no conditional logic beyond rendering.
 
 ## Bonus
 
