@@ -31,16 +31,16 @@ The React component must not contain any `useState`, validation logic, or `async
 
 ## Acceptance criteria
 
-- [ ] Initial state is `editing`, with empty fields and no errors.
-- [ ] `CHANGE` updates the matching field in `context`.
-- [ ] `SUBMIT` with invalid fields stays in `editing` and sets the errors.
-- [ ] `SUBMIT` with valid fields → `submitting`.
-- [ ] Successful API call → `success`.
-- [ ] Failed API call → `error`, with the error message in `context`.
-- [ ] `RETRY` in `error` → `submitting`.
-- [ ] `CHANGE` in `error` → `editing`.
-- [ ] Events sent while `submitting` (`CHANGE`, `SUBMIT`) do nothing.
-- [ ] The component has no conditional logic beyond rendering.
+- [x] Initial state is `editing`, with empty fields and no errors.
+- [x] `CHANGE` updates the matching field in `context`.
+- [x] `SUBMIT` with invalid fields stays in `editing` and sets the errors.
+- [x] `SUBMIT` with valid fields → `submitting`.
+- [x] Successful API call → `success`.
+- [x] Failed API call → `error`, with the error message in `context`.
+- [x] `RETRY` in `error` → `submitting`.
+- [x] `CHANGE` in `error` → `editing`.
+- [x] Events sent while `submitting` (`CHANGE`, `SUBMIT`) do nothing.
+- [x] The component has no conditional logic beyond rendering.
 
 ## Bonus
 
